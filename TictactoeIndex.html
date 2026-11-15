@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcade Tic-Tac-Toe Pro</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #030712 0%, #0f172a 100%);
+            color: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 15px;
+        }
+        h1 {
+            margin-bottom: 4px;
+            font-size: 1.7rem;
+            color: #38bdf8;
+            text-align: center;
+            text-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
+            letter-spacing: 0.5px;
+        }
+        .subtitle {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .controls {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .btn-option {
+            background-color: #1e293b;
+            color: #94a3b8;
+            border: 1px solid #334155;
+            padding: 6px 10px;
+            font-size: 0.75rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-option.active {
+            background-color: #38bdf8;
+            color: #030712;
+            font-weight: bold;
+            border-color: #38bdf8;
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+        }
+        .scoreboard {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            background-color: rgba(17, 24, 39, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 8px 12px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            width: 100%;
+            max-width: 340px;
+            justify-content: space-around;
+        }
+        .score-box {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #94a3b8;
+        }
+        .score-box span {
+            display: block;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #f8fafc;
+        }
+        .streak-container {
+            display: flex;
+            gap: 15px;
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+            font-weight: bold;
+        }
+        .streak-banner {
+            color: #fbbf24;
+            text-shadow: 0 0 8px rgba(251, 191, 36, 0.3);
+        }
+        .best-streak {
+            color: #34d399;
+            text-shadow: 0 0 8px rgba(52, 211, 153, 0.3);
+        }
+        .status {
+            font-size: 0.95rem;
+            margin-bottom: 15px;
+            color: #cbd5e1;
+            height: 22px;
+            text-align: center;
+            font-weight: 500;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 98px);
+            grid-template-rows: repeat(3, 98px);
+            gap: 10px;
+            background-color: rgba(15, 23, 42, 0.9);
+            padding: 12px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .cell {
+            background-color: #1e293b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            border-radius: 14px;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.15s, transform 0.1s;
+        }
+        .cell:active {
+            transform: scale(0.9);
+        }
+        .cell.x {
+            color: #38bdf8;
+            text-shadow: 0 0 15px rgba(56, 189, 248, 0.8);
+        }
+        .cell.o {
+            color: #ec4899;
+            text-shadow: 0 0 15px rgba(236, 72, 153, 0.8);
+        }
+        .cell.win {
+            background-color: #334155;
+            animation: pulseWin 0.6s infinite alternate;
+        }
+        @keyframes pulseWin {
+            0% { transform: scale(1); box-shadow: 0 0 10px #fbbf24; }
+            100% { transform: scale(1.06); box-shadow: 0 0 25px #fbbf24; }
+        }
+        .restart-btn {
+            margin-top: 22px;
+            padding: 11px 26px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #38bdf8, #0284c7);
+            color: #030712;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(56, 189, 248, 0.4);
+        }
+        .restart-btn:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+
+    <h1>⚡ ARCADE TIC-TAC-TOE</h1>
+    <div class="subtitle">Saved with LocalStorage</div>
+    
+    <div class="controls">
+        <button class="btn-option active" id="modePvp">2 Player</button>
+        <button class="btn-option" id="modeEasy">Easy AI</button>
+        <button class="btn-option" id="modeHard">Hard AI 🤖</button>
+    </div>
+
+    <div class="streak-container">
+        <div class="streak-banner" id="streakBanner">🔥 Streak: 0</div>
+        <div class="best-streak" id="bestStreakBanner">🏆 Best: 0</div>
+    </div>
+
+    <div class="scoreboard">
+        <div class="score-box">Player X <span id="scoreX">0</span></div>
+        <div class="score-box">Draws <span id="scoreDraw">0</span></div>
+        <div class="score-box" id="scoreLabelO">Player O <span id="scoreO">0</span></div>
+    </div>
+
+    <div class="status" id="status">Player X's turn</div>
+
+    <div class="board" id="board">
+        <div class="cell" data-index="0"></div>
+        <div class="cell" data-index="1"></div>
+        <div class="cell" data-index="2"></div>
+        <div class="cell" data-index="3"></div>
+        <div class="cell" data-index="4"></div>
+        <div class="cell" data-index="5"></div>
+        <div class="cell" data-index="6"></div>
+        <div class="cell" data-index="7"></div>
+        <div class="cell" data-index="8"></div>
+    </div>
+
+    <button class="restart-btn" id="restartBtn">Play Again</button>
+
+    <script>
+        const cells = document.querySelectorAll('.cell');
+        const statusDisplay = document.getElementById('status');
+        const restartBtn = document.getElementById('restartBtn');
+        const modePvp = document.getElementById('modePvp');
+        const modeEasy = document.getElementById('modeEasy');
+        const modeHard = document.getElementById('modeHard');
+        const scoreXEl = document.getElementById('scoreX');
+        const scoreOEl = document.getElementById('scoreO');
+        const scoreDrawEl = document.getElementById('scoreDraw');
+        const scoreLabelO = document.getElementById('scoreLabelO');
+        const streakBanner = document.getElementById('streakBanner');
+        const bestStreakBanner = document.getElementById('bestStreakBanner');
+
+        let gameState = ["", "", "", "", "", "", "", "", ""];
+        let currentPlayer = "X";
+        let gameActive = true;
+        let gameMode = "pvp";
+
+        let scores = { x: 0, o: 0, draw: 0 };
+        let streak = 0;
+        let bestStreak = localStorage.getItem('tictactoe_best_streak') || 0;
+
+        let audioCtx = null;
+        function playSound(type) {
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'click') {
+                    osc.frequency.setValueAtTime(350, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(700, audioCtx.currentTime + 0.07);
+                    gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.07);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.07);
+                } else if (type === 'win') {
+                    osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+                    osc.frequency.setValueAtTime(554.37, audioCtx.currentTime + 0.1);
+                    osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.2);
+                    gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.4);
+                } else if (type === 'draw') {
+                    osc.frequency.setValueAtTime(250, audioCtx.currentTime);
+                    osc.frequency.linearRampToValueAtTime(120, audioCtx.currentTime + 0.3);
+                    gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.3);
+                }
+            } catch (e) {}
+        }
+
+        const winningConditions = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8],
+            [0, 3, 6], [1, 4, 7], [2, 5, 8],
+            [0, 4, 8], [2, 4, 6]
+        ];
+
+        function handleCellClick(e) {
+            const idx = parseInt(e.target.getAttribute('data-index'));
+            if (gameState[idx] !== "" || !gameActive) return;
+            if (gameMode !== "pvp" && currentPlayer === "O") return;
+
+            makeMove(idx, currentPlayer);
+
+            if (gameActive && gameMode !== "pvp" && currentPlayer === "O") {
+                setTimeout(aiTurn, 350);
+            }
+        }
+
+        function makeMove(index, player) {
+            gameState[index] = player;
+            cells[index].innerText = player;
+            cells[index].classList.add(player.toLowerCase());
+            playSound('click');
+            checkResultValidation();
+        }
+
+        function aiTurn() {
+            if (!gameActive) return;
+            let move = -1;
+
+            if (gameMode === "easy") {
+                let empty = [];
+                gameState.forEach((val, i) => { if (val === "") empty.push(i); });
+                if (empty.length > 0) move = empty[Math.floor(Math.random() * empty.length)];
+            } else if (gameMode === "hard") {
+                move = findBestMoveMinimax();
+            }
+
+            if (move !== -1) makeMove(move, "O");
+        }
+
+        function findBestMoveMinimax() {
+            let bestVal = -Infinity;
+            let bestMove = -1;
+            for (let i = 0; i < gameState.length; i++) {
+                if (gameState[i] === "") {
+                    gameState[i] = "O";
+                    let moveVal = minimax(gameState, 0, false);
+                    gameState[i] = "";
+                    if (moveVal > bestVal) {
+                        bestVal = moveVal;
+                        bestMove = i;
+                    }
+                }
+            }
+            return bestMove;
+        }
+
+        function minimax(board, depth, isMaximizing) {
+            let res = checkWinnerBoard(board);
+            if (res === 'O') return 10 - depth;
+            if (res === 'X') return depth - 10;
+            if (!board.includes("")) return 0;
+
+            if (isMaximizing) {
+                let maxEval = -Infinity;
+                for (let i = 0; i < board.length; i++) {
+                    if (board[i] === "") {
+                        board[i] = "O";
+                        maxEval = Math.max(maxEval, minimax(board, depth + 1, false));
+                        board[i] = "";
+                    }
+                }
+                return maxEval;
+            } else {
+                let minEval = Infinity;
+                for (let i = 0; i < board.length; i++) {
+                    if (board[i] === "") {
+                        board[i] = "X";
+                        minEval = Math.min(minEval, minimax(board, depth + 1, true));
+                        board[i] = "";
+                    }
+                }
+                return minEval;
+            }
+        }
+
+        function checkWinnerBoard(b) {
+            for (let i = 0; i < winningConditions.length; i++) {
+                const [a, b1, c] = winningConditions[i];
+                if (b[a] && b[a] === b[b1] && b[a] === b[c]) return b[a];
+            }
+            return null;
+        }
+
+        function checkResultValidation() {
+            let roundWon = false;
+            let winningCombo = [];
+
+            for (let i = 0; i < winningConditions.length; i++) {
+                const [a, b, c] = winningConditions[i];
+                if (gameState[a] === '' || gameState[b] === '' || gameState[c] === '') continue;
+                if (gameState[a] === gameState[b] && gameState[b] === gameState[c]) {
+                    roundWon = true;
+                    winningCombo = [a, b, c];
+                    break;
+                }
+            }
+
+            if (roundWon) {
+                statusDisplay.innerText = `Player ${currentPlayer} Wins! 🎉`;
+                playSound('win');
+                gameActive = false;
+                winningCombo.forEach(idx => cells[idx].classList.add('win'));
+
+                if (currentPlayer === "X") { 
+                    scores.x++; 
+                    streak++; 
+                    if (streak > bestStreak) {
+                        bestStreak = streak;
+                        localStorage.setItem('tictactoe_best_streak', bestStreak);
+                    }
+                } else { 
+                    scores.o++; 
+                    streak = 0; 
+                }
+                updateScores();
+                return;
+            }
+
+            if (!gameState.includes("")) {
+                statusDisplay.innerText = `It's a Draw! 🤝`;
+                playSound('draw');
+                gameActive = false;
+                scores.draw++;
+                streak = 0;
+                updateScores();
+                return;
+            }
+
+            currentPlayer = currentPlayer === "X" ? "O" : "X";
+            if (gameMode !== "pvp" && currentPlayer === "O") {
+                statusDisplay.innerText = `AI is thinking...`;
+            } else {
+                statusDisplay.innerText = `Player ${currentPlayer}'s turn`;
+            }
+        }
+
+        function updateScores() {
+            scoreXEl.innerText = scores.x;
+            scoreOEl.innerText = scores.o;
+            scoreDrawEl.innerText = scores.draw;
+            streakBanner.innerText = `🔥 Streak: ${streak}`;
+            bestStreakBanner.innerText = `🏆 Best: ${bestStreak}`;
+        }
+
+        function resetBoard() {
+            gameActive = true;
+            currentPlayer = "X";
+            gameState = ["", "", "", "", "", "", "", "", ""];
+            statusDisplay.innerText = `Player X's turn`;
+            cells.forEach(cell => {
+                cell.innerText = "";
+                cell.classList.remove('x', 'o', 'win');
+            });
+        }
+
+        function setMode(mode, label) {
+            gameMode = mode;
+            [modePvp, modeEasy, modeHard].forEach(b => b.classList.remove('active'));
+            if (mode === 'pvp') modePvp.classList.add('active');
+            if (mode === 'easy') modeEasy.classList.add('active');
+            if (mode === 'hard') modeHard.classList.add('active');
+
+            scoreLabelO.innerHTML = `${label} <span id="scoreO">0</span>`;
+            scores = { x: 0, o: 0, draw: 0 };
+            streak = 0;
+            updateScores();
+            resetBoard();
+        }
+
+        modePvp.addEventListener('click', () => setMode('pvp', 'Player O'));
+        modeEasy.addEventListener('click', () => setMode('easy', 'Easy AI'));
+        modeHard.addEventListener('click', () => setMode('hard', 'Hard AI'));
+
+        cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+        restartBtn.addEventListener('click', resetBoard);
+        updateScores();
+    </script>
+</body>
+</html>
